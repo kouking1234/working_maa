@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>MODULE 01 | 余裕がないの正体を理解する</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#1A1A2E;
+    --navy-soft:#23233D;
+    --accent:#0F3460;
+    --teal:#00B4D8;
+    --teal-soft:#E0F7FA;
+    --gold:#F4A261;
+    --gold-soft:#FFF3E0;
+    --green:#27AE60;
+    --green-soft:#E8F5E9;
+    --purple:#9B59B6;
+    --purple-soft:#F3E5F5;
+    --paper:#F7F9FC;
+    --ink:#1F2430;
+    --ink-soft:#6B7280;
+    --line:#E4E8EF;
+    --radius:18px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    font-family:'Noto Sans JP', sans-serif;
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .display{font-family:'Zen Kaku Gothic New', sans-serif;}
+
+  /* ===== top progress bar ===== */
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    background:var(--navy);
+    padding:10px 16px 12px;
+  }
+  .topbar-row{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:8px;
+  }
+  .brand{
+    color:var(--teal); font-size:11px; letter-spacing:.12em;
+    font-weight:700; text-transform:uppercase;
+  }
+  .step-label{
+    color:#fff; font-size:12px; opacity:.7;
+  }
+  .progress-track{
+    height:5px; background:rgba(255,255,255,.12); border-radius:99px; overflow:hidden;
+  }
+  .progress-fill{
+    height:100%; width:0%; background:linear-gradient(90deg,var(--teal),#48CAE4);
+    border-radius:99px; transition:width .5s cubic-bezier(.4,0,.2,1);
+  }
+  .dots{
+    display:flex; gap:6px; margin-top:10px; justify-content:center;
+  }
+  .dot{
+    width:7px; height:7px; border-radius:99px; background:rgba(255,255,255,.18);
+    transition:all .3s;
+  }
+  .dot.active{ background:var(--teal); width:20px; }
+  .dot.done{ background:var(--green); }
+
+  /* ===== page container ===== */
+  .stage{ max-width:480px; margin:0 auto; padding:0 16px 120px; }
+
+  .screen{ display:none; animation:fadeUp .45s ease; }
+  .screen.active{ display:block; }
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ===== hero / lesson header ===== */
+  .lesson-eyebrow{
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--lesson-color, var(--teal));
+    color:#fff; font-size:11px; font-weight:700; letter-spacing:.08em;
+    padding:5px 12px; border-radius:99px; margin-top:20px;
+  }
+  .lesson-title{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-size:25px; font-weight:900; line-height:1.4;
+    margin:14px 0 6px; color:var(--navy);
+  }
+  .lesson-sub{
+    font-size:13.5px; color:var(--ink-soft); margin-bottom:22px; line-height:1.6;
+  }
+
+  /* ===== cards ===== */
+  .card{
+    background:#fff; border-radius:var(--radius);
+    padding:18px 18px; margin-bottom:14px;
+    border:1px solid var(--line);
+  }
+  .card-tinted{
+    background:var(--tint, var(--teal-soft));
+    border:1px solid transparent;
+  }
+  .card-title{
+    display:flex; align-items:center; gap:8px;
+    font-weight:700; font-size:14.5px; margin-bottom:10px;
+    color:var(--navy);
+  }
+  .card-title .ico{ font-size:17px; }
+  .card p{ font-size:14px; line-height:1.85; margin:0 0 10px; color:var(--ink); }
+  .card p:last-child{ margin-bottom:0; }
+  .card ul{ margin:0; padding-left:0; list-style:none; }
+  .card li{
+    font-size:13.8px; line-height:1.7; color:var(--ink);
+    padding:9px 0 9px 26px; position:relative;
+    border-bottom:1px solid rgba(0,0,0,.05);
+  }
+  .card li:last-child{ border-bottom:none; }
+  .card li::before{
+    content:"●"; position:absolute; left:0; top:10px;
+    color:var(--bullet, var(--teal)); font-size:9px;
+  }
+
+  /* type blocks for definition items */
+  .def-block{
+    border-radius:14px; padding:14px 16px; margin-bottom:10px;
+    background:var(--bg, var(--teal-soft));
+    border-left:4px solid var(--accent-c, var(--teal));
+  }
+  .def-num{
+    font-size:12.5px; font-weight:900; color:var(--accent-c, var(--teal));
+    margin-bottom:4px; letter-spacing:.02em;
+  }
+  .def-block p{ font-size:13.3px; color:var(--ink); margin:0; line-height:1.7; white-space:pre-line;}
+
+  /* mechanism blocks */
+  .mech{
+    border-radius:16px; padding:16px; margin-bottom:12px;
+    background:var(--bg);
+  }
+  .mech-head{
+    display:flex; align-items:center; gap:8px; margin-bottom:8px;
+  }
+  .mech-num{
+    width:26px; height:26px; border-radius:8px; flex:none;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--accent-c); color:#fff; font-weight:900; font-size:12px;
+  }
+  .mech-title{ font-weight:700; font-size:14px; color:var(--navy); }
+  .mech p{ font-size:13.3px; color:var(--ink); line-height:1.8; white-space:pre-line; margin:0; }
+  .mech .note{
+    margin-top:8px; padding-top:8px; border-top:1px dashed rgba(0,0,0,.12);
+    font-size:12.5px; color:var(--accent-c); font-weight:700;
+  }
+
+  /* before/after switch */
+  .switch-pair{ margin-bottom:14px; }
+  .switch-before, .switch-after{
+    border-radius:12px; padding:11px 14px; font-size:13.3px; line-height:1.6;
+    display:flex; align-items:flex-start; gap:8px;
+  }
+  .switch-before{ background:#FFEBEE; color:#C0392B; margin-bottom:6px; }
+  .switch-after{ background:var(--green-soft); color:#1B5E20; font-weight:700; }
+  .switch-arrow{ text-align:center; font-size:13px; color:#bbb; margin:2px 0; }
+
+  /* ===== inputs ===== */
+  .q-block{ margin-bottom:18px; }
+  .q-label{
+    font-size:13.8px; font-weight:700; color:var(--navy);
+    line-height:1.6; margin-bottom:10px;
+    display:flex; gap:8px;
+  }
+  .q-label .qmark{
+    flex:none; width:22px; height:22px; border-radius:7px;
+    background:var(--teal); color:#fff; font-size:12px; font-weight:900;
+    display:flex; align-items:center; justify-content:center;
+  }
+  textarea{
+    width:100%; min-height:92px; border-radius:14px;
+    border:1.5px solid var(--line); background:#fff;
+    padding:13px 14px; font-family:'Noto Sans JP', sans-serif;
+    font-size:14.5px; line-height:1.7; color:var(--ink);
+    resize:vertical; outline:none;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  textarea:focus{
+    border-color:var(--teal);
+    box-shadow:0 0 0 4px rgba(0,180,216,.12);
+  }
+  textarea::placeholder{ color:#B7BFCC; }
+  .char-count{
+    text-align:right; font-size:11px; color:#B7BFCC; margin-top:5px;
+  }
+
+  input[type="text"]{
+    width:100%; border-radius:12px; border:1.5px solid var(--line);
+    background:#fff; padding:12px 14px; font-size:14px;
+    font-family:'Noto Sans JP', sans-serif; color:var(--ink); outline:none;
+  }
+  input[type="text"]:focus{ border-color:var(--teal); box-shadow:0 0 0 4px rgba(0,180,216,.12); }
+
+  /* mini text pair for switch exercise */
+  .pair-card{
+    background:#fff; border-radius:14px; padding:14px; margin-bottom:12px;
+    border:1px solid var(--line);
+  }
+  .pair-label{
+    font-size:11.5px; font-weight:700; margin-bottom:6px; display:flex; align-items:center; gap:5px;
+  }
+  .pair-label.neg{ color:#E53E3E; }
+  .pair-label.pos{ color:var(--green); }
+
+  /* ===== summary box (callout) ===== */
+  .callout{
+    border-radius:16px; padding:16px 18px; margin:18px 0;
+    background:var(--bg, var(--gold-soft));
+    display:flex; gap:10px; align-items:flex-start;
+  }
+  .callout .ico{ font-size:19px; flex:none; }
+  .callout p{ margin:0; font-size:13.5px; line-height:1.75; color:var(--tx, #7B4800); white-space:pre-line; font-weight:500; }
+
+  /* ===== nav buttons ===== */
+  .navbar{
+    position:fixed; bottom:0; left:0; right:0; z-index:40;
+    background:rgba(247,249,252,.92); backdrop-filter:blur(10px);
+    border-top:1px solid var(--line);
+    padding:12px 16px calc(14px + env(safe-area-inset-bottom));
+  }
+  .navbar-inner{
+    max-width:480px; margin:0 auto;
+    display:flex; gap:10px;
+  }
+  .btn{
+    flex:1; border:none; border-radius:14px; padding:14px 16px;
+    font-family:'Noto Sans JP', sans-serif; font-size:14.5px; font-weight:700;
+    cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;
+    transition:transform .15s, opacity .15s;
+  }
+  .btn:active{ transform:scale(.97); }
+  .btn-ghost{
+    background:#fff; color:var(--ink-soft); border:1.5px solid var(--line);
+    flex:0 0 52px;
+  }
+  .btn-primary{
+    background:var(--navy); color:#fff;
+  }
+  .btn-primary.locked{ opacity:.4; pointer-events:none; }
+  .btn-primary .arrow{ transition:transform .2s; }
+
+  /* ===== welcome screen ===== */
+  .welcome{
+    padding-top:8px;
+  }
+  .welcome-hero{
+    background:linear-gradient(160deg, var(--navy) 0%, #142850 100%);
+    border-radius:24px; padding:34px 24px 28px; margin-top:16px;
+    position:relative; overflow:hidden;
+  }
+  .welcome-hero::before{
+    content:""; position:absolute; top:-40px; right:-40px;
+    width:160px; height:160px; border-radius:99px;
+    background:radial-gradient(circle, rgba(0,180,216,.25), transparent 70%);
+  }
+  .welcome-eyebrow{
+    color:var(--teal); font-size:11.5px; font-weight:700; letter-spacing:.14em;
+    text-transform:uppercase; position:relative;
+  }
+  .welcome-title{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    font-size:26px; font-weight:900; color:#fff; line-height:1.45;
+    margin:12px 0 10px; position:relative;
+  }
+  .welcome-title em{ color:var(--teal); font-style:normal; }
+  .welcome-desc{
+    color:rgba(255,255,255,.72); font-size:13.5px; line-height:1.8; position:relative;
+  }
+  .welcome-meta{
+    display:flex; gap:8px; margin-top:20px; position:relative;
+  }
+  .meta-pill{
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14);
+    border-radius:99px; padding:7px 13px; font-size:11.5px; color:#fff;
+    display:flex; align-items:center; gap:5px;
+  }
+
+  .toc{ margin-top:22px; }
+  .toc-item{
+    display:flex; align-items:center; gap:13px;
+    background:#fff; border-radius:16px; padding:14px 15px; margin-bottom:10px;
+    border:1px solid var(--line);
+  }
+  .toc-num{
+    width:38px; height:38px; border-radius:11px; flex:none;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:900; font-size:14px; color:#fff;
+    background:var(--c);
+  }
+  .toc-text{ flex:1; }
+  .toc-title{ font-size:13.8px; font-weight:700; color:var(--navy); margin-bottom:2px; }
+  .toc-desc{ font-size:11.8px; color:var(--ink-soft); }
+
+  .start-btn{
+    margin-top:20px; width:100%; border:none; border-radius:16px;
+    background:linear-gradient(135deg, var(--teal), #0096C7);
+    color:#fff; font-family:'Noto Sans JP', sans-serif;
+    font-size:15.5px; font-weight:700; padding:17px;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    box-shadow:0 10px 24px -8px rgba(0,180,216,.5);
+  }
+
+  /* ===== summary / final screen ===== */
+  .summary-head{
+    text-align:center; padding:28px 10px 10px;
+  }
+  .summary-badge{
+    width:64px; height:64px; border-radius:99px; margin:0 auto 16px;
+    background:var(--green-soft); display:flex; align-items:center; justify-content:center;
+    font-size:30px;
+  }
+  .summary-head h2{
+    font-family:'Zen Kaku Gothic New', sans-serif; font-size:21px; font-weight:900;
+    color:var(--navy); margin:0 0 8px;
+  }
+  .summary-head p{ font-size:13.5px; color:var(--ink-soft); line-height:1.7; margin:0; }
+
+  .answer-card{
+    background:#fff; border-radius:14px; padding:14px 16px; margin-bottom:10px;
+    border:1px solid var(--line); border-left:4px solid var(--c, var(--teal));
+  }
+  .answer-q{ font-size:12px; font-weight:700; color:var(--c, var(--teal)); margin-bottom:6px; line-height:1.5; }
+  .answer-a{ font-size:13.8px; color:var(--ink); line-height:1.75; white-space:pre-wrap; }
+  .answer-a.empty{ color:#C2C8D2; font-style:italic; }
+
+  .copy-btn{
+    width:100%; border:none; border-radius:14px; padding:15px;
+    background:var(--navy); color:#fff; font-weight:700; font-size:14.5px;
+    font-family:'Noto Sans JP', sans-serif; display:flex; align-items:center;
+    justify-content:center; gap:8px; margin-top:18px;
+    transition:background .2s;
+  }
+  .copy-btn.copied{ background:var(--green); }
+
+  .line-hint{
+    margin-top:12px; text-align:center; font-size:12px; color:var(--ink-soft);
+    line-height:1.7;
+  }
+
+  ::selection{ background:rgba(0,180,216,.25); }
+
+  @media (min-width:520px){
+    .stage{ padding-left:24px; padding-right:24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar" id="topbar" style="display:none;">
+  <div class="topbar-row">
+    <span class="brand">MODULE 01</span>
+    <span class="step-label" id="stepLabel">1 / 6</span>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="dots" id="dots"></div>
+</div>
+
+<div class="stage">
+
+  <!-- ============ SCREEN 0: WELCOME ============ -->
+  <div class="screen active" data-screen="0">
+    <div class="welcome">
+      <div class="welcome-hero">
+        <div class="welcome-eyebrow">MODULE 01 ・ 認知教材</div>
+        <div class="welcome-title">余裕が<em>ない</em>の<br>正体を理解する</div>
+        <div class="welcome-desc">「動けない」には、ちゃんとした理由があります。読んで、考えて、書く。このワークが終わる頃には、自分への見方が変わっています。</div>
+        <div class="welcome-meta">
+          <div class="meta-pill">⏱ 約15分</div>
+          <div class="meta-pill">📝 全10問</div>
+        </div>
+      </div>
+
+      <div class="toc">
+        <div class="toc-item">
+          <div class="toc-num" style="--c:#00B4D8;">1</div>
+          <div class="toc-text">
+            <div class="toc-title">余裕がある状態って何？</div>
+            <div class="toc-desc">3種類の余裕を理解する</div>
+          </div>
+        </div>
+        <div class="toc-item">
+          <div class="toc-num" style="--c:#F4A261;">2</div>
+          <div class="toc-text">
+            <div class="toc-title">なぜ恋愛できなくなるのか</div>
+            <div class="toc-desc">ストレスが行動を止める3つの理由</div>
+          </div>
+        </div>
+        <div class="toc-item">
+          <div class="toc-num" style="--c:#27AE60;">3</div>
+          <div class="toc-text">
+            <div class="toc-title">自分を責めなくていい理由</div>
+            <div class="toc-desc">自己批判が悪循環を生む仕組み</div>
+          </div>
+        </div>
+        <div class="toc-item">
+          <div class="toc-num" style="--c:#9B59B6;">4</div>
+          <div class="toc-text">
+            <div class="toc-title">認知を切り替える</div>
+            <div class="toc-desc">言葉を変えると、見える景色が変わる</div>
+          </div>
+        </div>
+        <div class="toc-item">
+          <div class="toc-num" style="--c:#1A1A2E;">5</div>
+          <div class="toc-text">
+            <div class="toc-title">総まとめ</div>
+            <div class="toc-desc">気づきを整理して、LINEで共有</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="start-btn" onclick="goTo(1)">はじめる <span>→</span></button>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN 1: LESSON 1 ============ -->
+  <div class="screen" data-screen="1">
+    <div class="lesson-eyebrow" style="--lesson-color:#00B4D8;">📖 LESSON 1</div>
+    <div class="lesson-title">「余裕がある状態」って何？</div>
+    <div class="lesson-sub">まず「目指す状態」を正確に定義します。なんとなく使っているこの言葉には、実は3つの種類があります。</div>
+
+    <div class="def-block" style="--bg:#E0F7FA; --accent-c:#00B4D8;">
+      <div class="def-num">① 時間の余裕</div>
+      <p>スケジュールに空白があること。「やりたいことをやる時間がある」状態。</p>
+    </div>
+    <div class="def-block" style="--bg:#FFF3E0; --accent-c:#F4A261;">
+      <div class="def-num">② エネルギーの余裕</div>
+      <p>体と心に活力があること。「やる気と体力がある」状態。
+※時間があってもエネルギーがなければ動けません。</p>
+    </div>
+    <div class="def-block" style="--bg:#E8F5E9; --accent-c:#27AE60;">
+      <div class="def-num">③ 精神的な余裕</div>
+      <p>頭の中に余白があること。「心配事や緊張感に支配されていない」状態。
+※最も回復しにくく、最も恋愛に影響します。</p>
+    </div>
+
+    <div class="callout" style="--bg:#FFF3E0; --tx:#7B4800;">
+      <div class="ico">💡</div>
+      <p>職場ストレスが慢性化している人は、「③精神的な余裕」が最初に失われます。精神的な余裕がなくなると、時間やエネルギーがあっても、恋愛に「気持ちが向かない」状態になります。
+
+これは意志力の問題ではなく、脳の仕組みの問題です。</p>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label"><span class="qmark">Q1</span>今の自分に最も不足している余裕はどれですか？　なぜそう感じますか？</div>
+      <textarea data-key="q1" placeholder="例：精神的な余裕。仕事中ずっと別の心配事を考えてしまっている気がする…" oninput="onType(this)"></textarea>
+    </div>
+    <div class="q-block">
+      <div class="q-label"><span class="qmark">Q2</span>「余裕がある状態」の自分は、どんな行動をしていると思いますか？</div>
+      <textarea data-key="q2" placeholder="例：気になる人に自分からメッセージを送れている、休日に予定を入れられている…" oninput="onType(this)"></textarea>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN 2: LESSON 2 ============ -->
+  <div class="screen" data-screen="2">
+    <div class="lesson-eyebrow" style="--lesson-color:#F4A261;">🧠 LESSON 2</div>
+    <div class="lesson-title">なぜストレスで<br>恋愛できなくなるのか</div>
+    <div class="lesson-sub">「動けない」が起きるメカニズムを理解します。理由がわかると、自分を責める必要がなくなります。</div>
+
+    <div class="mech" style="--bg:#E0F7FA; --accent-c:#00B4D8;">
+      <div class="mech-head">
+        <div class="mech-num" style="background:#00B4D8;">1</div>
+        <div class="mech-title">脳が「安全でない」と判断する</div>
+      </div>
+      <p>ストレス状態の脳は、生存に関係のないことを後回しにします。恋愛は「安全・食料・睡眠」より優先度が低いため、ストレス下では自動的に関心が下がります。</p>
+      <div class="note">▶ これは本能的な防衛反応です</div>
+    </div>
+
+    <div class="mech" style="--bg:#FFF3E0; --accent-c:#F4A261;">
+      <div class="mech-head">
+        <div class="mech-num" style="background:#F4A261;">2</div>
+        <div class="mech-title">思考が「現在の問題」に支配される</div>
+      </div>
+      <p>仕事の悩みがあると、頭は常にその問題を考え続けます。恋愛について考えようとしても、すぐに仕事の思考に引き戻されます。</p>
+      <div class="note">▶ 「考えたくても考えられない」は本当のこと</div>
+    </div>
+
+    <div class="mech" style="--bg:#E8F5E9; --accent-c:#27AE60;">
+      <div class="mech-head">
+        <div class="mech-num" style="background:#27AE60;">3</div>
+        <div class="mech-title">行動するエネルギーが底をつく</div>
+      </div>
+      <p>判断・我慢・集中の繰り返しで、脳のエネルギーは1日で消耗します（意思決定疲労）。"メッセージを送る"という小さな行動すら「しんどい」と感じるのは当然です。</p>
+      <div class="note">▶ 怠けではなく、エネルギー切れです</div>
+    </div>
+
+    <div class="callout" style="--bg:#E0F7FA; --tx:#0F3460;">
+      <div class="ico">🔑</div>
+      <p>ストレス状態では、脳・思考・エネルギーの3レベルで恋愛行動がブロックされています。「動けない」のは性格や意志の問題ではなく、状況が作り出している必然です。</p>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label"><span class="qmark">Q3</span>3つのうち、自分に最も当てはまるものはどれですか？　具体的に書いてみてください。</div>
+      <textarea data-key="q3" placeholder="例：②が一番近い。仕事の段取りのことが頭から離れない日が多い" oninput="onType(this)"></textarea>
+    </div>
+    <div class="q-block">
+      <div class="q-label"><span class="qmark">Q4</span>「動けない」自分に対して、これまでどんなふうに自己批判していましたか？</div>
+      <textarea data-key="q4" placeholder="例：「自分は本気で恋愛したいと思っていないのかも」と感じてしまう" oninput="onType(this)"></textarea>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN 3: LESSON 3 ============ -->
+  <div class="screen" data-screen="3">
+    <div class="lesson-eyebrow" style="--lesson-color:#27AE60;">💚 LESSON 3</div>
+    <div class="lesson-title">「動けない自分」を<br>責めなくていい理由</div>
+    <div class="lesson-sub">自己批判は「動けない状態」をさらに悪化させます。なぜ責めないことが前進への近道なのかを理解します。</div>
+
+    <div class="card card-tinted" style="--tint:#FFEBEE;">
+      <div class="card-title" style="color:#C0392B;"><span class="ico">❌</span>自己批判が逆効果な理由</div>
+      <p style="color:#7A2E2E;">「なんで動かないんだ」「意志が弱い」と自分を責めると、脳はさらにストレス状態になります。</p>
+      <p style="color:#7A2E2E; font-weight:700;">ストレスが増える → 余裕がさらになくなる → もっと動けなくなる</p>
+      <p style="color:#7A2E2E;">自己批判は「解決策」ではなく、「悪循環の原因」です。</p>
+    </div>
+
+    <div class="card card-tinted" style="--tint:#E8F5E9;">
+      <div class="card-title" style="color:#1B7A43;"><span class="ico">✅</span>アドラー心理学の視点から</div>
+      <p style="color:#1B5E20;">「課題の分離」という考え方があります。「動けない」状態は、あなたの「性格」や「能力」ではなく、「環境と状況」が生み出しているものです。</p>
+      <p style="color:#1B5E20;">コントロールできないことを責めても意味がありません。コントロールできることに集中することが、変化への道です。</p>
+    </div>
+
+    <div class="card card-tinted" style="--tint:#E0F7FA;">
+      <div class="card-title" style="color:#0F3460;"><span class="ico">🌱</span>自己受容とは「諦め」ではない</div>
+      <p>「今の自分を受け入れる」のは、現状に満足して変化をやめることではありません。「今の自分はこういう状態だ」と正確に把握することで、初めて「次に何ができるか」が見えてきます。</p>
+      <p>自己批判は現実を歪めます。自己受容は現実を正確に見せてくれます。</p>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label"><span class="qmark">Q5</span>これまで「動けない自分」を責めていた場面を一つ思い出してください。今日の学びを踏まえると、どう捉え直せますか？</div>
+      <textarea data-key="q5" placeholder="例：連絡を返せなかった夜、自分にがっかりしていた。でもあれはエネルギー切れだったのかもしれない" oninput="onType(this)"></textarea>
+    </div>
+    <div class="q-block">
+      <div class="q-label"><span class="qmark">Q6</span>「自分を責めることをやめる」ために、明日から一つだけ変えられることは何ですか？</div>
+      <textarea data-key="q6" placeholder="例：動けなかった日は「疲れてたんだな」と一言だけ言ってみる" oninput="onType(this)"></textarea>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN 4: LESSON 4 ============ -->
+  <div class="screen" data-screen="4">
+    <div class="lesson-eyebrow" style="--lesson-color:#9B59B6;">🔄 LESSON 4</div>
+    <div class="lesson-title">認知を切り替える</div>
+    <div class="lesson-sub">「できていない」から「環境が整っていない」へ。言葉を変えると、見える景色が変わります。</div>
+
+    <div class="switch-pair">
+      <div class="switch-before">❌&nbsp; 「意志が弱い」</div>
+      <div class="switch-arrow">↓</div>
+      <div class="switch-after">✅&nbsp; 「今はエネルギーが不足している状態だ」</div>
+    </div>
+    <div class="switch-pair">
+      <div class="switch-before">❌&nbsp; 「なんで動けないんだろう」</div>
+      <div class="switch-arrow">↓</div>
+      <div class="switch-after">✅&nbsp; 「動けない理由が環境にある。それを変えればいい」</div>
+    </div>
+    <div class="switch-pair">
+      <div class="switch-before">❌&nbsp; 「恋愛に向いていないのかも」</div>
+      <div class="switch-arrow">↓</div>
+      <div class="switch-after">✅&nbsp; 「今は恋愛に使えるリソースが不足しているだけ」</div>
+    </div>
+    <div class="switch-pair">
+      <div class="switch-before">❌&nbsp; 「もっと頑張らないといけない」</div>
+      <div class="switch-arrow">↓</div>
+      <div class="switch-after">✅&nbsp; 「まず余裕を作る環境を整えることが先決だ」</div>
+    </div>
+
+    <div class="card" style="margin-top:8px;">
+      <div class="card-title"><span class="ico">✍️</span>自分バージョンを作ってみよう</div>
+      <p>今、自分が最もよく使っている自己批判の言葉を書いて、切り替え後の言葉に変換してみてください。</p>
+    </div>
+
+    <div class="pair-card">
+      <div class="pair-label neg">❌ 自己批判の言葉</div>
+      <textarea data-key="q7a" style="min-height:54px;" placeholder="今よく使ってしまう言葉を書いてください" oninput="onType(this)"></textarea>
+      <div class="pair-label pos" style="margin-top:10px;">✅ 切り替え後の言葉</div>
+      <textarea data-key="q7b" style="min-height:54px;" placeholder="LESSON4を参考に変換してみてください" oninput="onType(this)"></textarea>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN 5: SUMMARY ============ -->
+  <div class="screen" data-screen="5">
+    <div class="summary-head">
+      <div class="summary-badge">🎉</div>
+      <h2>お疲れさまでした</h2>
+      <p>全てのレッスンが完了しました。<br>下に書いた内容をまとめています。</p>
+    </div>
+
+    <div id="summaryList"></div>
+
+    <button class="copy-btn" id="copyBtn" onclick="copyAll()">
+      <span>📋</span><span>まとめをコピーする</span>
+    </button>
+    <div class="line-hint">コピーしたら、昂希のLINEに貼り付けて送ってください。<br>「MODULE 01 完了しました」のひと言を添えるとスムーズです。</div>
+  </div>
+
+</div>
+
+<div class="navbar" id="navbar" style="display:none;">
+  <div class="navbar-inner">
+    <button class="btn btn-ghost" id="backBtn" onclick="prevScreen()">←</button>
+    <button class="btn btn-primary" id="nextBtn" onclick="nextScreen()">
+      <span id="nextLabel">次へ進む</span><span class="arrow">→</span>
+    </button>
+  </div>
+</div>
+
+<script>
+const TOTAL_SCREENS = 6; // 0..5
+let current = 0;
+
+const lessonColors = ["", "#00B4D8", "#F4A261", "#27AE60", "#9B59B6", "#1A1A2E"];
+
+const questions = [
+  {key:"q1", label:"今の自分に最も不足している余裕はどれですか？", color:"#00B4D8"},
+  {key:"q2", label:"「余裕がある状態」の自分はどんな行動をしている？", color:"#00B4D8"},
+  {key:"q3", label:"3つのメカニズムのうち最も当てはまるものは？", color:"#F4A261"},
+  {key:"q4", label:"これまでどんなふうに自己批判していた？", color:"#F4A261"},
+  {key:"q5", label:"自己批判していた場面を、どう捉え直せる？", color:"#27AE60"},
+  {key:"q6", label:"自分を責めることをやめるために、明日変えられることは？", color:"#27AE60"},
+  {key:"q7a", label:"❌ 自己批判の言葉", color:"#9B59B6"},
+  {key:"q7b", label:"✅ 切り替え後の言葉", color:"#9B59B6"},
+];
+
+const answers = {};
+
+function onType(el){
+  answers[el.dataset.key] = el.value;
+}
+
+function buildDots(){
+  const dotsEl = document.getElementById('dots');
+  dotsEl.innerHTML = '';
+  for(let i=0;i<TOTAL_SCREENS;i++){
+    const d = document.createElement('div');
+    d.className = 'dot';
+    dotsEl.appendChild(d);
+  }
+}
+buildDots();
+
+function updateChrome(){
+  const topbar = document.getElementById('topbar');
+  const navbar = document.getElementById('navbar');
+  if(current === 0){
+    topbar.style.display = 'none';
+    navbar.style.display = 'none';
+  } else {
+    topbar.style.display = 'block';
+    navbar.style.display = 'block';
+  }
+
+  document.getElementById('stepLabel').textContent = `${current} / ${TOTAL_SCREENS-1}`;
+  const pct = current === 0 ? 0 : (current/(TOTAL_SCREENS-1))*100;
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  const dots = document.querySelectorAll('.dot');
+  dots.forEach((d,i)=>{
+    d.classList.remove('active','done');
+    if(i < current) d.classList.add('done');
+    if(i === current) d.classList.add('active');
+  });
+
+  const backBtn = document.getElementById('backBtn');
+  backBtn.style.visibility = current <= 1 ? 'hidden' : 'visible';
+
+  const nextLabel = document.getElementById('nextLabel');
+  const nextBtn = document.getElementById('nextBtn');
+  if(current === TOTAL_SCREENS - 2){
+    nextLabel.textContent = '総まとめへ';
+  } else if(current === TOTAL_SCREENS - 1){
+    nextBtn.style.display = 'none';
+  } else {
+    nextLabel.textContent = '次へ進む';
+    nextBtn.style.display = 'flex';
+  }
+}
+
+function goTo(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelector(`.screen[data-screen="${n}"]`).classList.add('active');
+  current = n;
+  window.scrollTo({top:0, behavior:'instant'});
+  updateChrome();
+  if(n === TOTAL_SCREENS - 1){ renderSummary(); }
+}
+
+function nextScreen(){
+  if(current < TOTAL_SCREENS - 1) goTo(current+1);
+}
+function prevScreen(){
+  if(current > 0) goTo(current-1);
+}
+
+function renderSummary(){
+  const list = document.getElementById('summaryList');
+  list.innerHTML = '';
+  questions.forEach((q,i)=>{
+    const val = answers[q.key] && answers[q.key].trim();
+    const card = document.createElement('div');
+    card.className = 'answer-card';
+    card.style.setProperty('--c', q.color);
+    card.innerHTML = `
+      <div class="answer-q">Q${i+1}. ${q.label}</div>
+      <div class="answer-a ${val ? '' : 'empty'}">${val ? escapeHtml(val) : '（未記入）'}</div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function escapeHtml(str){
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function copyAll(){
+  let text = "【MODULE 01 振り返りまとめ】\n\n";
+  questions.forEach((q,i)=>{
+    const val = (answers[q.key] && answers[q.key].trim()) || "（未記入）";
+    text += `Q${i+1}. ${q.label}\n${val}\n\n`;
+  });
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.getElementById('copyBtn');
+    btn.classList.add('copied');
+    btn.innerHTML = '<span>✓</span><span>コピーしました</span>';
+    setTimeout(()=>{
+      btn.classList.remove('copied');
+      btn.innerHTML = '<span>📋</span><span>まとめをコピーする</span>';
+    }, 2200);
+  }).catch(()=>{
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    const btn = document.getElementById('copyBtn');
+    btn.classList.add('copied');
+    btn.innerHTML = '<span>✓</span><span>コピーしました</span>';
+    setTimeout(()=>{
+      btn.classList.remove('copied');
+      btn.innerHTML = '<span>📋</span><span>まとめをコピーする</span>';
+    }, 2200);
+  });
+}
+
+updateChrome();
+</script>
+
+</body>
+</html>
